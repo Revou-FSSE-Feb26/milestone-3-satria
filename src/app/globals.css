@@ -1,0 +1,74 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Brand */
+  --primary: #10B981;
+  --primary-hover: #059669;
+  --primary-active: #047857;
+
+  /* Surface */
+  --background: #F9FAFB;
+  --card: #FFFFFF;
+
+  /* Text */
+  --foreground: #111827;
+  --muted: #6B7280;
+
+  /* Border */
+  --border: #E5E7EB;
+
+  /* Status */
+  --danger: #EF4444;
+  --danger-hover: #DC2626;
+}
+
+@theme inline {
+  /* Colors */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+
+  --color-background: var(--background);
+  --color-card: var(--card);
+
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+
+  --color-border: var(--border);
+
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+
+  /* Fonts */
+  --font-sans: var(--font-plus-jakarta);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #34D399;
+    --primary-hover: #10B981;
+    --primary-active: #059669;
+
+    --background: #0F172A;
+    --card: #1E293B;
+
+    --foreground: #F8FAFC;
+    --muted: #94A3B8;
+
+    --border: #334155;
+
+    --danger: #F87171;
+    --danger-hover: #EF4444;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+
+main{
+  flex:1;
+}
