@@ -3,13 +3,15 @@
 import Card from "@/component/Card";
 import Navbar from "@/component/Navbar";
 import Footer from "@/component/Footer";
+import { useState, useEffect } from "react";
 
 const products = [
     {
         id: 1,
-        title: "Wireless Headphones",
+        title: "Wireless Headphone",
+        category: "Electronics",
         description: "Premium sound with active noise cancellation.",
-        image: "/products/headphones.jpg",
+        image: "/product/headphone-5.jpg",
         price: "$199.00",
         originalPrice: "$299.00",
         badge: "20% OFF",
@@ -19,8 +21,9 @@ const products = [
     {
         id: 2,
         title: "Running Sneakers",
-        description: "Lightweight and breathable for everyday use.",
-        image: "/products/sneakers.jpg",
+        category: "Fashion",
+        description: "Lightweight and breathable.",
+        image: "/product/running-sneakers.jpg",
         price: "$59.00",
         originalPrice: "$95.00",
         badge: "Sale",
@@ -30,8 +33,9 @@ const products = [
     {
         id: 3,
         title: "Smart Watch Pro",
-        description: "Track your health and stay connected.",
-        image: "/products/smartwatch.jpg",
+        category: "Electronics",
+        description: "Track your health.",
+        image: "/product/smartwatch.jpg",
         price: "$199.00",
         badge: "New",
         rating: 4.7,
@@ -40,8 +44,9 @@ const products = [
     {
         id: 4,
         title: "Gaming Controller",
-        description: "Ergonomic wireless design for all platforms.",
-        image: "/products/controller.jpg",
+        category: "Electronics",
+        description: "Ergonomic wireless design.",
+        image: "/product/gaming-controller.jpg",
         price: "$45.00",
         originalPrice: "$69.00",
         badge: "Sale",
@@ -60,6 +65,16 @@ const categories = [
 ];
 
 export default function Home() {
+    const [activeCategory, setActiveCategory] = useState("All");
+    const [filtered, setFiltered] = useState(products);
+
+    useEffect(()=>{
+        if (activeCategory ==="All"){
+            setFiltered(products);
+        }else{
+            setFiltered(products.filter(p => p.category ===activeCategory))
+        }
+    }, [activeCategory]);
     return (
         <div className="min-h-screen flex flex-col">
             <Navbar />
@@ -107,8 +122,9 @@ export default function Home() {
                         {categories.map((cat, i) => (
                             <button
                                 key={i}
+                                onClick ={() => setActiveCategory(cat)}
                                 className={`px-4 py-1.5 rounded-full border text-sm font-medium transition-colors ${
-                                    i === 0
+                                    cat === activeCategory
                                         ? "bg-primary/10 border-primary text-primary"
                                         : "border-border text-muted hover:bg-primary-10 hover:border-primary hover:text-primary"
                                 }`}
@@ -133,7 +149,7 @@ export default function Home() {
                         </a>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {products.map((product) => (
+                        {filtered.map((product) => (
                             <Card key={product.id} {...product} />
                         ))}
                     </div>
