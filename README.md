@@ -128,7 +128,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Screenshots
 
 ### Home Page
-![Home Page](/public/screenshots/home.png)
+![Home Page](/public/screenshots/Home.png)
 
 ### Product Detail Page
 ![Product Detail](/public/screenshots/product-detail.png)
