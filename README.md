@@ -1,6 +1,6 @@
 # RevouShop
 
-A modern e-commerce product listing and detail page built with Next.js and Tailwind CSS.
+> A modern e-commerce product listing and detail page built with Next.js and Tailwind CSS.
 
 ## Live Demo
 
@@ -137,6 +137,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Author
 
-**Satria Pamungkas** — © 2026 All rights reserved.
+**Developed by:** Satria Pamungkas
+
+Built as part of the **Revou Next.JS Development** course assignment.
+
+## License
+
+This project is for educational purposes only.
 
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/FR3B1BQd)
