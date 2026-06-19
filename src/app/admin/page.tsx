@@ -67,10 +67,25 @@ export default function AdminPage() {
         setLoadingProducts(true);
         setApiError(null);
         try {
-            const res = await fetch("/api/products");
+            const res = await fetch("https://fakestoreapi.com/products", {
+                cache: "no-store",
+            });
             if (!res.ok) throw new Error("Failed to load products");
             const data = await res.json();
-            setProducts(data);
+            const formatted = data.map((p: any) => ({
+                id: p.id,
+                title: p.title,
+                category:
+                    p.category.charAt(0).toUpperCase() + p.category.slice(1),
+                description: p.description,
+                image: p.image,
+                price: `$${p.price.toFixed(2)}`,
+                rating: p.rating?.rate ?? null,
+                reviews: p.rating?.count ?? 0,
+                badge: null,
+                inStock: true,
+            }));
+            setProducts(formatted);
         } catch (err: any) {
             setApiError(err.message);
         } finally {

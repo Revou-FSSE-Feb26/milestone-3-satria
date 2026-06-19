@@ -37,7 +37,11 @@ export async function GET() {
     }
 }
 
-export async function POST(request: NextRequest) {
+export async function PUT(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> },
+) {
+    const { id } = await params;
     try {
         const body = await request.json();
 
@@ -56,36 +60,28 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const res = await fetch(`${PLATZI}/products`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            cache: "no-store",
-            body: JSON.stringify({
-                title: body.title,
-                price: priceNum,
-                description: body.description || "",
-                categoryId: 1,
-                images: [
-                    body.image || "https://placehold.co/600x400?text=Product",
-                ],
-            }),
+        return NextResponse.json({
+            id: Number(id),
+            title: body.title,
+            category: body.category || "Electronics",
+            description: body.description || "",
+            image: body.image || "https://placehold.co/600x400?text=Product",
+            price: `$${priceNum.toFixed(2)}`,
+            originalPrice: body.originalPrice || null,
+            badge: body.badge || null,
+            inStock: body.inStock ?? true,
+            rating: 0,
+            reviews: 0,
         });
-
-        if (!res.ok) throw new Error("Failed to create product");
-        const created = await res.json();
-
-        return NextResponse.json(
-            {
-                ...created,
-                category: body.category || "Electronics",
-                badge: body.badge || null,
-                inStock: body.inStock ?? true,
-                price: `$${priceNum.toFixed(2)}`,
-                originalPrice: body.originalPrice || null,
-            },
-            { status: 201 },
-        );
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
+}
+
+export async function DELETE(
+    _request: NextRequest,
+    { params }: { params: Promise<{ id: string }> },
+) {
+    const { id } = await params;
+    return NextResponse.json({ success: true, id: Number(id) });
 }
