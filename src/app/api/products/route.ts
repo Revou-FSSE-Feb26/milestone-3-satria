@@ -3,6 +3,21 @@ import { NextRequest, NextResponse } from "next/server";
 const PLATZI = "https://api.escuelajs.co/api/v1";
 const FAKESTORE = "https://fakestoreapi.com";
 
+const FALLBACK_PRODUCTS = [
+    {
+        id: 1,
+        title: "Sample Product",
+        category: "Electronics",
+        description: "FakeStore API is temporarily unavailable.",
+        image: "https://placehold.co/400x400?text=Product",
+        price: "$9.99",
+        rating: null,
+        reviews: 0,
+        badge: null,
+        inStock: true,
+    },
+];
+
 function capitalize(str: string) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -25,15 +40,29 @@ function formatFakeProduct(product: any) {
 
 export async function GET() {
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
         const res = await fetch(`${FAKESTORE}/products`, {
             cache: "no-store",
-            signal: AbortSignal.timeout(10000),
+            signal: controller.signal,
+            headers: {
+                Accept: "application/json",
+                "User-Agent": "Mozilla/5.0",
+            },
         });
-        if (!res.ok) throw new Error("Failed to fetch products");
+
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error(`FakeStore responded with ${res.status}`);
         const data = await res.json();
+
+        if (!Array.isArray(data)) throw new Error("Unexpected response shape");
+
         return NextResponse.json(data.map(formatFakeProduct));
     } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        console.error("FakeStore GET failed:", err.message);
+        return NextResponse.json(FALLBACK_PRODUCTS, { status: 200 });
     }
 }
 
@@ -94,9 +123,7 @@ export async function POST(request: NextRequest) {
                     { status: 201 },
                 );
             }
-        } catch {
-
-        }
+        } catch {}
 
         return NextResponse.json(optimisticResponse, { status: 201 });
     } catch (err: any) {
