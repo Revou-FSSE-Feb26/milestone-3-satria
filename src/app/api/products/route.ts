@@ -27,6 +27,7 @@ export async function GET() {
     try {
         const res = await fetch(`${FAKESTORE}/products`, {
             cache: "no-store",
+            signal: AbortSignal.timeout(10000),
         });
         if (!res.ok) throw new Error("Failed to fetch products");
         const data = await res.json();
