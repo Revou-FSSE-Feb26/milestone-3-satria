@@ -1,11 +1,11 @@
-import XIcon from "../../public/icons/x-twitter.svg"
-import InstagramIcon from "../../public/icons/instagram.svg"
-import FacebookIcon from "../../public/icons/facebook.svg"
-import YoutubeIcon from "../../public/icons/youtube.svg"
+import XIcon from "../../public/icons/x-twitter.svg";
+import InstagramIcon from "../../public/icons/instagram.svg";
+import FacebookIcon from "../../public/icons/facebook.svg";
+import YoutubeIcon from "../../public/icons/youtube.svg";
 
-import VisaIcon from "../../public/icons/visa.svg"
-import MastercardIcon from "../../public/icons/mastercard.svg"
-import GopayIcon from "../../public/icons/wallet.svg"
+import VisaIcon from "../../public/icons/visa.svg";
+import MastercardIcon from "../../public/icons/mastercard.svg";
+import GopayIcon from "../../public/icons/wallet.svg";
 
 const links = {
     Shop: ["All Products", "Promotions", "New Arrivals", "Best Sellers"],
@@ -13,17 +13,17 @@ const links = {
     Company: ["About Us", "Careers", "Privacy Policy", "Terms of Service"],
 };
 
-const socials =[
-    {label: "X", icon: XIcon, href: "#"},
-    {label: "IG", icon: InstagramIcon, href: "#"},
-    {label: "FB", icon: FacebookIcon, href: "#"},
-    {label: "YT", icon: YoutubeIcon, href: "#"},
+const socials = [
+    { label: "X", icon: XIcon, href: "#" },
+    { label: "IG", icon: InstagramIcon, href: "#" },
+    { label: "FB", icon: FacebookIcon, href: "#" },
+    { label: "YT", icon: YoutubeIcon, href: "#" },
 ];
 
 const payments = [
-    {label: "Visa", icon: VisaIcon},
-    {label: "Mastercard", icon: MastercardIcon},
-    {label: "Gopay", icon: GopayIcon},
+    { label: "Visa", icon: VisaIcon },
+    { label: "Mastercard", icon: MastercardIcon },
+    { label: "Gopay", icon: GopayIcon },
 ];
 
 export default function Footer() {
@@ -45,7 +45,7 @@ export default function Footer() {
                                 href={href}
                                 className="w-8 h-8 flex items-center justify-center text-muted hover:text-foreground rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-500 hover:bg-border transition-colors"
                             >
-                                <Icon className="w-4 h-4 fill-current"/>
+                                <Icon className="w-4 h-4 fill-current" />
                             </a>
                         ))}
                     </div>
@@ -77,9 +77,12 @@ export default function Footer() {
                     &copy; 2026 Satria Pamungkas. All rights reserved
                 </p>
                 <div className="flex gap-2">
-                    {payments.map(({ label, icon: Icon })=>(
-                        <span key={label} className="text-xs px-2.5 py-1 rounded-md border border-border text-muted">
-                            <Icon className="w-4 h-4 fill-current"/>
+                    {payments.map(({ label, icon: Icon }) => (
+                        <span
+                            key={label}
+                            className="text-xs px-2.5 py-1 rounded-md border border-border text-muted"
+                        >
+                            <Icon className="w-4 h-4 fill-current" />
                         </span>
                     ))}
                 </div>

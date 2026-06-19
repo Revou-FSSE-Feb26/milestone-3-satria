@@ -1,7 +1,10 @@
-"use client"
+"use client";
 
 import Card from "@/component/Card";
 import { useState, useEffect } from "react";
+import { useCart } from "@/context/Cartcontext";
+import { useAuth } from "@/context/Authcontext";
+import { useRouter } from "next/navigation";
 
 import FavoritIcon from "../../../public/icons/heart.svg";
 import ShareIcon from "../../../public/icons/share-nodes.svg";
@@ -13,62 +16,6 @@ import LockIcon from "../../../public/icons/lock.svg";
 import Navbar from "@/component/Navbar";
 import Footer from "@/component/Footer";
 
-const relatedProducts = [
-    {
-        id: 2,
-        title: "Running Sneakers",
-        category: "Fashion",
-        description: "Lightweight and breathable.",
-        image: "/product/running-sneakers.jpg",
-        price: "$59.00",
-        originalPrice: "$95.00",
-        badge: "Sale",
-        rating: 4.9,
-        reviews: 64,
-    },
-    {
-        id: 3,
-        title: "Smart Watch Pro",
-        category: "Electronics",
-        description: "Track your health.",
-        image: "/product/smartwatch.jpg",
-        price: "$199.00",
-        badge: "New",
-        rating: 4.7,
-        reviews: 92,
-    },
-    {
-        id: 4,
-        title: "Gaming Controller",
-        category: "Electronics",
-        description: "Ergonomic wireless design.",
-        image: "/product/gaming-controller.jpg",
-        price: "$45.00",
-        originalPrice: "$69.00",
-        badge: "Sale",
-        rating: 4.6,
-        reviews: 40,
-    },
-    {
-        id: 5,
-        title: "Phone Stand Pro",
-        category: "Electronics",
-        description: "Adjustable for any device.",
-        image: "/product/phone-stand.jpg",
-        price: "$29.00",
-        badge: "New",
-        rating: 4.5,
-        reviews: 31,
-    },
-];
-
-const thumbnails = [
-    "/product/headphone-5.jpg",
-    "/product/headphone.jpg",
-    "/product/headphone-2.jpg",
-    "/product/headphone-3.jpg",
-];
-
 const trustBadges = [
     { icon: TruckIcon, text: "Free delivery over $50" },
     { icon: RefreshIcon, text: "30-day returns" },
@@ -76,7 +23,28 @@ const trustBadges = [
     { icon: LockIcon, text: "Secure checkout" },
 ];
 
+function capitalize(str: string) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+interface Product {
+    id: number;
+    title: string;
+    category: string;
+    description: string;
+    image: string;
+    price: string;
+    originalPrice?: string;
+    badge?: string | null;
+    rating?: number | null;
+    reviews?: number;
+    inStock?: boolean;
+    discount?: number;
+    colors?: string[];
+}
+
 export default function ProductDetail({
+    id,
     title,
     description,
     image,
@@ -89,11 +57,19 @@ export default function ProductDetail({
     discount,
     inStock = true,
     colors = [],
-}) {
-    
+}: Product) {
+    const { addItem } = useCart();
+    const { isAuthenticated } = useAuth();
+    const router = useRouter();
+
     const [quantity, setQuantity] = useState(1);
-    const [activeThumb, setActiveThumb] = useState(0);
     const [mainImage, setMainImage] = useState(image);
+    const [activeThumb, setActiveThumb] = useState(0);
+
+    const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+    const [relatedLoading, setRelatedLoading] = useState(true);
+
+    const thumbnails = [image, image, image, image];
 
     useEffect(() => {
         setActiveThumb(0);
@@ -104,11 +80,63 @@ export default function ProductDetail({
         document.title = `${title} | RevouShop`;
     }, [title]);
 
+    useEffect(() => {
+        if (!category) return;
+        setRelatedLoading(true);
+
+        const encodedCategory = category.toLowerCase();
+
+        fetch(`https://fakestoreapi.com/products/category/${encodedCategory}`)
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed");
+                return res.json();
+            })
+            .then((data) => {
+                const formatted = data
+                    .filter((p: any) => p.id !== id)
+                    .slice(0, 4)
+                    .map((p: any) => ({
+                        id: p.id,
+                        title: p.title,
+                        category: capitalize(p.category),
+                        description: p.description,
+                        image: p.image,
+                        price: `$${p.price.toFixed(2)}`,
+                        rating: p.rating?.rate ?? null,
+                        reviews: p.rating?.count ?? 0,
+                        badge: null,
+                    }));
+                setRelatedProducts(formatted);
+            })
+            .catch(() => setRelatedProducts([]))
+            .finally(() => setRelatedLoading(false));
+    }, [id, category]);
+
+    const handleAddToCart = () => {
+        if (!isAuthenticated) {
+            router.push(`/login?redirect=/product/${id}`);
+            return;
+        }
+
+        const priceNum = parseFloat(price.replace("$", ""));
+        addItem({
+            id,
+            title,
+            description,
+            image,
+            price: priceNum,
+            originalPrice: originalPrice
+                ? parseFloat(originalPrice.replace("$", ""))
+                : undefined,
+            badge: badge || undefined,
+            category,
+        });
+    };
     return (
         <div className="min-h-screen flex flex-col bg-background">
             <Navbar />
 
-            {/* breadcrumbs */}
+            {/* Breadcrumbs */}
             <div className="px-10 py-4 flex items-center gap-2 text-xs text-muted">
                 <a href="/" className="hover:text-primary transition-colors">
                     Home
@@ -137,10 +165,10 @@ export default function ProductDetail({
                             <img
                                 src={mainImage}
                                 alt={title}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain p-6 transition-all duration-300"
                             />
                         </div>
-                        {/* Thumbnails */}
+                        {/* Thumbnails — all point to the real product image */}
                         <div className="flex gap-3 mt-3">
                             {thumbnails.map((thumb, i) => (
                                 <button
@@ -158,7 +186,7 @@ export default function ProductDetail({
                                     <img
                                         src={thumb}
                                         alt={`View ${i + 1}`}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-contain p-1"
                                     />
                                 </button>
                             ))}
@@ -183,8 +211,8 @@ export default function ProductDetail({
                             <span
                                 className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                                     inStock
-                                        ? "bg-green-50 text-green-700 border-green-200"
-                                        : "bg-danger/10 text-danger border-danger/20"
+                                        ? "bg-green-50 text-green-700"
+                                        : "bg-danger/10 text-danger"
                                 }`}
                             >
                                 {inStock ? "In Stock" : "Out of Stock"}
@@ -222,7 +250,7 @@ export default function ProductDetail({
                                 </span>
                             )}
                             {discount && (
-                                <span className="text-xs font-semibold text-danger bg-danger px-2 py-0.5 rounded-full">
+                                <span className="text-xs font-semibold text-white bg-danger px-2 py-0.5 rounded-full">
                                     {discount}% Off
                                 </span>
                             )}
@@ -260,13 +288,21 @@ export default function ProductDetail({
                                 Quantity
                             </p>
                             <div className="flex items-center">
-                                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-9 h-9 border border-border rounded-l-lg bg-card text-foreground hover:border-primary transition-colors text-lg">
+                                <button
+                                    onClick={() =>
+                                        setQuantity((q) => Math.max(1, q - 1))
+                                    }
+                                    className="w-9 h-9 border border-border rounded-l-lg bg-card text-foreground hover:border-primary transition-colors text-lg"
+                                >
                                     -
                                 </button>
                                 <div className="w-12 h-9 border-t border-b border-border bg-card flex items-center justify-center text-sm font-medium text-foreground">
                                     {quantity}
                                 </div>
-                                <button onClick={() => setQuantity(q => q + 1)} className="w-9 h-9 border border-border rounded-l-lg bg-card text-foreground hover:border-primary transition-colors text-lg">
+                                <button
+                                    onClick={() => setQuantity((q) => q + 1)}
+                                    className="w-9 h-9 border border-border rounded-r-lg bg-card text-foreground hover:border-primary transition-colors text-lg"
+                                >
                                     +
                                 </button>
                             </div>
@@ -274,13 +310,17 @@ export default function ProductDetail({
 
                         {/* Add to Cart */}
                         <div className="flex gap-3">
-                            <button className="flex-1 py-3 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover active:bg-primary-active transition-colors">
-                                Add to Cart
+                            <button
+                                onClick={handleAddToCart}
+                                disabled={!inStock}
+                                className="flex-1 py-3 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover active:bg-primary-active transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {inStock ? "Add to Cart" : "Out of Stock"}
                             </button>
-                            <button className="w-11 h-11 border border-border rounded-xl bg-card text-muted hover:bg-primary/10 hover:border-primary hover:text-primary trasition-colors flex items-center justify-center">
+                            <button className="w-11 h-11 border border-border rounded-xl bg-card text-muted hover:bg-primary/10 hover:border-primary hover:text-primary transition-colors flex items-center justify-center">
                                 <FavoritIcon className="w-4 h-4 fill-current" />
                             </button>
-                            <button className="w-11 h-11 border border-border rounded-xl bg-card text-muted hover:bg-primary/10 hover:border-primary hover:text-primary trasition-colors flex items-center justify-center">
+                            <button className="w-11 h-11 border border-border rounded-xl bg-card text-muted hover:bg-primary/10 hover:border-primary hover:text-primary transition-colors flex items-center justify-center">
                                 <ShareIcon className="w-4 h-4 fill-current" />
                             </button>
                         </div>
@@ -307,17 +347,33 @@ export default function ProductDetail({
                             Related Products
                         </h2>
                         <a
-                            href="#"
+                            href="/product"
                             className="text-sm text-primary font-medium hover:text-primary-hover transition-colors"
                         >
                             See All
                         </a>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {relatedProducts.map((product) => (
-                            <Card key={product.id} {...product} />
-                        ))}
-                    </div>
+
+                    {relatedLoading ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {[...Array(4)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="bg-card border border-border rounded-2xl h-64 animate-pulse"
+                                />
+                            ))}
+                        </div>
+                    ) : relatedProducts.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {relatedProducts.map((product) => (
+                                <Card key={product.id} {...product} />
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted">
+                            No related products found.
+                        </p>
+                    )}
                 </section>
             </main>
             <Footer />

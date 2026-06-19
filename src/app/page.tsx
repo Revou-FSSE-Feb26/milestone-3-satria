@@ -4,77 +4,49 @@ import Card from "@/component/Card";
 import Navbar from "@/component/Navbar";
 import Footer from "@/component/Footer";
 import { useState, useEffect } from "react";
+import { getAllProducts, getCategories } from "@/lib/api";
 
-const products = [
-    {
-        id: 1,
-        title: "Wireless Headphone",
-        category: "Electronics",
-        description: "Premium sound with active noise cancellation.",
-        image: "/product/headphone-5.jpg",
-        price: "$199.00",
-        originalPrice: "$299.00",
-        badge: "20% OFF",
-        rating: 4.8,
-        reviews: 128,
-    },
-    {
-        id: 2,
-        title: "Running Sneakers",
-        category: "Fashion",
-        description: "Lightweight and breathable.",
-        image: "/product/running-sneakers.jpg",
-        price: "$59.00",
-        originalPrice: "$95.00",
-        badge: "Sale",
-        rating: 4.9,
-        reviews: 64,
-    },
-    {
-        id: 3,
-        title: "Smart Watch Pro",
-        category: "Electronics",
-        description: "Track your health.",
-        image: "/product/smartwatch.jpg",
-        price: "$199.00",
-        badge: "New",
-        rating: 4.7,
-        reviews: 92,
-    },
-    {
-        id: 4,
-        title: "Gaming Controller",
-        category: "Electronics",
-        description: "Ergonomic wireless design.",
-        image: "/product/gaming-controller.jpg",
-        price: "$45.00",
-        originalPrice: "$69.00",
-        badge: "Sale",
-        rating: 4.6,
-        reviews: 40,
-    },
-];
-
-const categories = [
-    "All",
-    "Electronics",
-    "Fashion",
-    "Home",
-    "Sports",
-    "Beauty",
-];
+type Product = {
+    id: number;
+    title: string;
+    category: string;
+    description: string;
+    image: string;
+    price: string;
+    rating: number | null;
+    reviews: number;
+    badge: string | null;
+};
 
 export default function Home() {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<string[]>(["All"]);
     const [activeCategory, setActiveCategory] = useState("All");
-    const [filtered, setFiltered] = useState(products);
+    const [loading, setLoading] = useState(true);
 
-    useEffect(()=>{
-        if (activeCategory ==="All"){
-            setFiltered(products);
-        }else{
-            setFiltered(products.filter(p => p.category ===activeCategory))
+    useEffect(() => {
+        async function loadData() {
+            try {
+                const [productData, categoryData] = await Promise.all([
+                    getAllProducts(),
+                    getCategories(),
+                ]);
+                setProducts(productData);
+                setCategories(["All", ...categoryData]);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
         }
-    }, [activeCategory]);
+        loadData();
+    }, []);
+
+    const filtered =
+        activeCategory === "All"
+            ? products
+            : products.filter((p) => p.category === activeCategory);
+
     return (
         <div className="min-h-screen flex flex-col">
             <Navbar />
@@ -118,15 +90,15 @@ export default function Home() {
             <main>
                 {/* Categories */}
                 <section className="px-10 pt-8 pb-4">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                         {categories.map((cat, i) => (
                             <button
                                 key={i}
-                                onClick ={() => setActiveCategory(cat)}
+                                onClick={() => setActiveCategory(cat)}
                                 className={`px-4 py-1.5 rounded-full border text-sm font-medium transition-colors ${
                                     cat === activeCategory
                                         ? "bg-primary/10 border-primary text-primary"
-                                        : "border-border text-muted hover:bg-primary-10 hover:border-primary hover:text-primary"
+                                        : "border-border text-muted hover:bg-primary/10 hover:border-primary hover:text-primary"
                                 }`}
                             >
                                 {cat}
@@ -142,17 +114,24 @@ export default function Home() {
                             Featured Products
                         </h2>
                         <a
-                            href="#"
+                            href="/product"
                             className="text-sm text-primary font-medium hover:text-primary-hover transition-colors"
                         >
                             See All
                         </a>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {filtered.map((product) => (
-                            <Card key={product.id} {...product} />
-                        ))}
-                    </div>
+
+                    {loading ? (
+                        <p className="text-sm text-muted">
+                            Loading products...
+                        </p>
+                    ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {filtered.slice(0, 4).map((product) => (
+                                <Card key={product.id} {...product} />
+                            ))}
+                        </div>
+                    )}
                 </section>
 
                 {/* Promo Banners */}
