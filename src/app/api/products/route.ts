@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
         const res = await fetch(`${PLATZI}/products`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            cache: "no-store",
             body: JSON.stringify({
                 title: body.title,
                 price: priceNum,

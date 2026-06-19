@@ -49,6 +49,7 @@ export async function createProduct({ title, price, description }) {
     const res = await fetch(`${PLATZI}/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify({
             title,
             price: Number(price),
