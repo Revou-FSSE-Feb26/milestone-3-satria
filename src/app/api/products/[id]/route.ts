@@ -61,36 +61,67 @@
                 );
             }
 
-            const priceNum = parseFloat(String(body.price).replace("$", ""));
-            if (isNaN(priceNum) || priceNum <= 0) {
-                return NextResponse.json(
-                    { error: "Price must be a positive number" },
-                    { status: 400 }
-                );
-            }
-
-            return NextResponse.json({
-                id: Number(id),
-                title: body.title,
-                category: body.category || "Electronics",
-                description: body.description || "",
-                image: body.image || "https://placehold.co/600x400?text=Product",
-                price: `$${priceNum.toFixed(2)}`,
-                originalPrice: body.originalPrice || null,
-                badge: body.badge || null,
-                inStock: body.inStock ?? true,
-                rating: 0,
-                reviews: 0,
-            });
-        } catch (err: any) {
-            return NextResponse.json({ error: err.message }, { status: 500 });
+        const priceNum = parseFloat(
+            String(body.price).replace("$", "")
+        );
+        if (isNaN(priceNum) || priceNum <= 0) {
+            return NextResponse.json(
+                { error: "Price must be a positive number" },
+                { status: 400 }
+            );
         }
-    }
 
-    export async function DELETE(
-        _request: NextRequest,
-        { params }: { params: Promise<{ id: string }> }
-    ) {
-        const { id } = await params;
-        return NextResponse.json({ success: true, id: Number(id) });
+        const res = await fetch(`${PLATZI}/products/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: body.title,
+                price: priceNum,
+                description: body.description || "",
+                images: [
+                    body.image ||
+                        "https://placehold.co/600x400?text=Product",
+                ],
+            }),
+        });
+
+        if (!res.ok) throw new Error("Failed to update product");
+        const updated = await res.json();
+
+        return NextResponse.json({
+            ...updated,
+            id: Number(id),
+            category: body.category || "Electronics",
+            badge: body.badge || null,
+            inStock: body.inStock ?? true,
+            price: `$${priceNum.toFixed(2)}`,
+            originalPrice: body.originalPrice || null,
+        });
+    } catch (err: any) {
+        return NextResponse.json(
+            { error: err.message },
+            { status: 500 }
+        );
     }
+}
+
+export async function DELETE(
+    _request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
+    try {
+        const res = await fetch(`${PLATZI}/products/${id}`, {
+            method: "DELETE",
+        });
+
+        if (!res.ok) throw new Error("Failed to delete product");
+
+        return NextResponse.json({ success: true, id: Number(id) });
+    } catch (err: any) {
+        return NextResponse.json(
+            { error: err.message },
+            { status: 500 }
+        );
+    }
+}
