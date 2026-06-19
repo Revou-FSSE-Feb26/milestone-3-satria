@@ -26,7 +26,7 @@ function formatFakeProduct(product: any) {
 export async function GET() {
     try {
         const res = await fetch(`${FAKESTORE}/products`, {
-            next: { revalidate: 60 },
+            cache: "no-store",
         });
         if (!res.ok) throw new Error("Failed to fetch products");
         const data = await res.json();
@@ -40,7 +40,6 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
-        // Validate required fields
         if (!body.title || !body.price) {
             return NextResponse.json(
                 { error: "Title and price are required" },
