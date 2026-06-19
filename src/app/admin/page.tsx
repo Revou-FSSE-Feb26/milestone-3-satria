@@ -179,6 +179,8 @@ export default function AdminPage() {
         setSaving(true);
         try {
             if (editingProduct) {
+                console.log("PUT URL:", `/api/products/${editingProduct.id}`);
+                console.log("editingProduct:", editingProduct);
                 const res = await fetch(`/api/products/${editingProduct.id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -233,6 +235,7 @@ export default function AdminPage() {
     };
 
     const handleDelete = async (id: number) => {
+        console.log("DELETE URL:", `/api/products/${id}`);
         try {
             const res = await fetch(`/api/products/${id}`, {
                 method: "DELETE",
